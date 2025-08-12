@@ -2,6 +2,7 @@
 
 A simple backend microservice exposing CRUD and search for products. Includes Dockerfile, CI workflow, health and metrics endpoints, and deployment notes for AWS App Runner. In-memory repository by default.
 
+
 ### API
 - `GET /health` – healthcheck
 - `GET /metrics` – Prometheus metrics
