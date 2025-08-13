@@ -74,11 +74,11 @@ resource "aws_iam_role_policy_attachment" "ecr_readonly" {
 }
 
 # Security groups
-resource "aws_security_group" "lb" {
+resource "aws_security_group" "task" {
   vpc_id = data.aws_vpc.default.id
   ingress {
-    from_port   = 80
-    to_port     = 80
+    from_port   = 3000
+    to_port     = 3000
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -90,75 +90,9 @@ resource "aws_security_group" "lb" {
   }
 }
 
-resource "aws_security_group" "task" {
-  vpc_id = data.aws_vpc.default.id
-  ingress {
-    from_port       = 0
-    to_port         = 65535
-    protocol        = "tcp"
-    security_groups = [aws_security_group.lb.id]
-  }
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
-# Load Balancer
-resource "aws_lb" "app" {
-  name               = "multi-api-alb"
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.lb.id]
-  subnets            = data.aws_subnets.default.ids
-}
-
-resource "aws_lb_listener" "http" {
-  load_balancer_arn = aws_lb.app.arn
-  port              = 80
-  protocol          = "HTTP"
-
-  default_action {
-    type = "fixed-response"
-    fixed_response {
-      content_type = "text/plain"
-      message_body = "Not Found"
-      status_code  = "404"
-    }
-  }
-}
-
 # ECS Cluster
 resource "aws_ecs_cluster" "this" {
   name = "multi-api-cluster"
-}
-
-# Services
-resource "aws_lb_target_group" "api" {
-  for_each    = { for svc in var.services : svc.name => svc }
-  name        = "${each.key}-tg"
-  port        = each.value.container_port
-  protocol    = "HTTP"
-  target_type = "ip"
-  vpc_id      = data.aws_vpc.default.id
-}
-
-resource "aws_lb_listener_rule" "api" {
-  for_each     = { for svc in var.services : svc.name => svc }
-  listener_arn = aws_lb_listener.http.arn
-  priority     = 100 + index(var.services, each.value)
-
-  action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.api[each.key].arn
-  }
-
-  condition {
-    path_pattern {
-      values = ["/${each.key}*"]
-    }
-  }
 }
 
 resource "aws_ecs_task_definition" "api" {
@@ -206,12 +140,4 @@ resource "aws_ecs_service" "api" {
     security_groups = [aws_security_group.task.id]
     assign_public_ip = true
   }
-
-  load_balancer {
-    target_group_arn = aws_lb_target_group.api[each.key].arn
-    container_name   = each.key
-    container_port   = each.value.container_port
-  }
-
-  depends_on = [aws_lb_listener_rule.api]
 }
