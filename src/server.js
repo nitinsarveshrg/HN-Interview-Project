@@ -11,9 +11,16 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan('combined'));
 
-
+// Health check endpoint
 app.get('/health', (_req, res) => {
   res.status(200).json({ status: 'ok' });
+});
+
+// Mount all routes under /hn-interview-app prefix for load balancer routing
+app.use('/hn-interview-app', (req, res, next) => {
+  // Remove the prefix for internal routing
+  req.url = req.url.replace('/hn-interview-app', '');
+  next();
 });
 
 app.use('/products', productsRouter);
