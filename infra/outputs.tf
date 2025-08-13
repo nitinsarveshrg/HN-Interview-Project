@@ -18,7 +18,7 @@ output "application_url" {
   value       = "http://[ECS_TASK_PUBLIC_IP]:3000"
 }
 
-output "deployment_instructions" {
-  description = "Instructions to get the application URL"
-  value       = "Run: aws ecs describe-tasks --cluster ${aws_ecs_cluster.this.name} --tasks $(aws ecs list-tasks --cluster ${aws_ecs_cluster.this.name} --service-name ${aws_ecs_service.api[\"hn-interview-app\"].name} --query 'taskArns' --output text) --query 'tasks[0].attachments[0].details[?name==\"publicIp\"].value' --output text"
+output "get_public_ip_command" {
+  description = "Command to get the ECS task public IP"
+  value       = "aws ecs describe-tasks --cluster ${aws_ecs_cluster.this.name} --tasks $(aws ecs list-tasks --cluster ${aws_ecs_cluster.this.name} --service-name ${aws_ecs_service.api[\"hn-interview-app\"].name} --query 'taskArns' --output text) --query 'tasks[0].attachments[0].details[?name==\"publicIp\"].value' --output text"
 }
