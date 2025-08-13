@@ -44,6 +44,20 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.5.0"
+
+      - name: Deploy Infrastructure to AWS
+        run: |
+          cd infra
+          terraform init
+          terraform plan -out=tfplan
+          terraform apply tfplan
+        env:
+          TF_VAR_aws_region: ${{ env.AWS_REGION }}
+
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
@@ -59,17 +73,3 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: "1.5.0"
-
-      - name: Deploy to AWS
-        run: |
-          cd infra
-          terraform init
-          terraform plan -out=tfplan
-          terraform apply tfplan
-        env:
-          TF_VAR_aws_region: ${{ env.AWS_REGION }}
