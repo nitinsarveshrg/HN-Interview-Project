@@ -53,13 +53,20 @@ jobs:
         run: |
           cd infra
           terraform init
-          
+
           # Check if ECR repository already exists and import it
           if aws ecr describe-repositories --repository-names hn-interview-app --region us-east-1 >/dev/null 2>&1; then
             echo "ECR repository already exists, importing into Terraform state..."
             terraform import aws_ecr_repository.app hn-interview-app || true
           fi
-          
+
+          # Handle existing security group by importing and then removing it
+          if aws ec2 describe-security-groups --group-ids sg-0e3fb8a1b2b8379a8 --region us-east-1 >/dev/null 2>&1; then
+            echo "Old security group exists, handling transition..."
+            # First, try to remove any dependencies
+            aws ec2 delete-security-group --group-id sg-0e3fb8a1b2b8379a8 --region us-east-1 || true
+          fi
+
           terraform plan -out=tfplan
           terraform apply tfplan
         env:

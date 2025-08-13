@@ -32,7 +32,10 @@ resource "aws_ecr_lifecycle_policy" "app" {
 }
 
 # Networking
-data "aws_vpc" "default" { default = true }
+data "aws_vpc" "default" {
+  default = true
+}
+
 data "aws_subnets" "default" {
   filter {
     name   = "vpc-id"
@@ -87,6 +90,10 @@ resource "aws_security_group" "task" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
 
