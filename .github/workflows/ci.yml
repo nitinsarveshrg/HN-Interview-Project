@@ -53,6 +53,13 @@ jobs:
         run: |
           cd infra
           terraform init
+          
+          # Check if ECR repository already exists and import it
+          if aws ecr describe-repositories --repository-names hn-interview-app --region us-east-1 >/dev/null 2>&1; then
+            echo "ECR repository already exists, importing into Terraform state..."
+            terraform import aws_ecr_repository.app hn-interview-app || true
+          fi
+          
           terraform plan -out=tfplan
           terraform apply tfplan
         env:
