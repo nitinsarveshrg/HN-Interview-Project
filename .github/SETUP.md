@@ -2,7 +2,7 @@
 
 This guide will help you set up the required secrets and permissions for the CI/CD pipeline to work with AWS.
 
-## 🔐 Required GitHub Secrets
+##  Required GitHub Secrets
 
 You need to add these secrets to your GitHub repository:
 
@@ -21,7 +21,7 @@ You need to add these secrets to your GitHub repository:
 - **Description**: Your AWS secret access key
 - **Value**: The secret access key from your AWS IAM user
 
-## 🏗️ AWS IAM User Setup
+##  AWS IAM User Setup
 
 Create an IAM user with the following permissions:
 
@@ -168,7 +168,7 @@ aws iam put-user-policy --user-name github-actions-deploy --policy-name ECSPolic
 # ... repeat for other policies
 ```
 
-## 🔒 Alternative: Use IAM Role (Recommended for Production)
+## Alternative: Use IAM Role (Recommended for Production)
 
 For production environments, consider using IAM roles with OIDC instead of access keys:
 
@@ -176,7 +176,7 @@ For production environments, consider using IAM roles with OIDC instead of acces
 2. **Create IAM Role** with trust relationship to GitHub
 3. **Update GitHub Actions** to use `aws-actions/configure-aws-credentials@v4` with role-based authentication
 
-## ✅ Verification
+##  Verification
 
 After setting up the secrets:
 
@@ -184,7 +184,7 @@ After setting up the secrets:
 2. **Check GitHub Actions** - Monitor the workflow execution
 3. **Verify AWS Resources** - Check ECR, ECS, and Load Balancer in AWS Console
 
-## 🚨 Security Notes
+##  Security Notes
 
 - **Never commit secrets** to your repository
 - **Use least privilege** - Only grant necessary permissions
@@ -192,7 +192,7 @@ After setting up the secrets:
 - **Consider using IAM roles** for production deployments
 - **Monitor AWS CloudTrail** for suspicious activity
 
-## 🆘 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
