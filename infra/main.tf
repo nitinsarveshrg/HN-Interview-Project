@@ -173,7 +173,7 @@ resource "aws_ecs_task_definition" "api" {
   container_definitions = jsonencode([
     {
       name      = each.key
-      image     = "${aws_ecr_repository.app.repository_url}:${each.key}"
+      image     = "${aws_ecr_repository.app.repository_url}:latest"
       essential = true
       portMappings = [
         {
