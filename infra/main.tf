@@ -1,3 +1,36 @@
+# ECR Repository
+resource "aws_ecr_repository" "app" {
+  name                 = "hn-interview-app"
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+}
+
+# ECR Lifecycle Policy
+resource "aws_ecr_lifecycle_policy" "app" {
+  repository = aws_ecr_repository.app.name
+
+  policy = jsonencode({
+    rules = [
+      {
+        rulePriority = 1
+        description  = "Keep last 5 images"
+        selection = {
+          tagStatus     = "tagged"
+          tagPrefixList = ["latest"]
+          countType     = "imageCountMoreThan"
+          countNumber   = 5
+        }
+        action = {
+          type = "expire"
+        }
+      }
+    ]
+  })
+}
+
 # Networking
 data "aws_vpc" "default" { default = true }
 data "aws_subnets" "default" {
@@ -140,7 +173,7 @@ resource "aws_ecs_task_definition" "api" {
   container_definitions = jsonencode([
     {
       name      = each.key
-      image     = each.value.image_url
+      image     = "${aws_ecr_repository.app.repository_url}:${each.key}"
       essential = true
       portMappings = [
         {
