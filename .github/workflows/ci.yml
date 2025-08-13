@@ -60,10 +60,21 @@ jobs:
             terraform import aws_ecr_repository.app hn-interview-app || true
           fi
 
-          # Handle existing security group by importing and then removing it
+          # Force cleanup of old security group and its dependencies
           if aws ec2 describe-security-groups --group-ids sg-0e3fb8a1b2b8379a8 --region us-east-1 >/dev/null 2>&1; then
-            echo "Old security group exists, handling transition..."
-            # First, try to remove any dependencies
+            echo "Force cleaning up old security group..."
+            
+            # Find and detach network interfaces
+            NETWORK_INTERFACES=$(aws ec2 describe-network-interfaces --filters "Name=group-id,Values=sg-0e3fb8a1b2b8379a8" --query 'NetworkInterfaces[*].NetworkInterfaceId' --output text --region us-east-1)
+            if [ ! -z "$NETWORK_INTERFACES" ]; then
+              echo "Detaching network interfaces: $NETWORK_INTERFACES"
+              for eni in $NETWORK_INTERFACES; do
+                aws ec2 detach-network-interface --attachment-id $(aws ec2 describe-network-interfaces --network-interface-ids $eni --query 'NetworkInterfaces[0].Attachment.AttachmentId' --output text --region us-east-1) --force --region us-east-1 || true
+                aws ec2 delete-network-interface --network-interface-id $eni --region us-east-1 || true
+              done
+            fi
+            
+            # Now try to delete the security group
             aws ec2 delete-security-group --group-id sg-0e3fb8a1b2b8379a8 --region us-east-1 || true
           fi
 
