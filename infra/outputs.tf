@@ -17,8 +17,3 @@ output "application_url" {
   description = "Direct URL to access the application (use the public IP from ECS service)"
   value       = "http://[ECS_TASK_PUBLIC_IP]:3000"
 }
-
-output "get_public_ip_command" {
-  description = "Command to get the ECS task public IP"
-  value       = "aws ecs describe-tasks --cluster ${aws_ecs_cluster.this.name} --tasks $(aws ecs list-tasks --cluster ${aws_ecs_cluster.this.name} --service-name ${aws_ecs_service.api[\"hn-interview-app\"].name} --query 'taskArns' --output text) --query 'tasks[0].attachments[0].details[?name==\"publicIp\"].value' --output text"
-}
